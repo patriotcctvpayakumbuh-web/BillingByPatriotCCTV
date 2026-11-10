@@ -43,25 +43,11 @@ header h1 { color: var(--accent-color); font-size: 1.5rem; }
 label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
 input, select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #475569; background-color: #0f172a; color: var(--text-main); font-size: 0.9rem; }
 input:focus, select:focus { outline: none; border-color: var(--accent-color); }
-.preset-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-.btn-preset { background-color: #334155; color: #f8fafc; border: none; padding: 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
-.btn-preset:hover { background-color: var(--accent-color); color: #0f172a; }
 .timer-display { text-align: center; font-size: 1.8rem; font-weight: bold; margin: 10px 0; color: var(--accent-color); letter-spacing: 2px; }
 .btn-group { display: flex; gap: 8px; margin-top: 10px; }
 button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 .btn-start { background-color: var(--accent-color); color: #0f172a; }
 .btn-stop { background-color: var(--danger-color); color: #fff; }
-.btn-fnb { background-color: var(--success-color); color: #fff; width: 100%; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-top: 5px; }
-.fnb-box { background-color: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 12px; }
-.log-box { margin-top: 8px; font-size: 0.75rem; color: var(--text-muted); text-align: center; min-height: 16px; }
-.finance-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.stat-box { background-color: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; }
-.stat-box span { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
-.stat-box h3 { font-size: 1rem; color: var(--success-color); }
-.stat-box.expense h3 { color: var(--danger-color); }
-.transaction-list { max-height: 280px; overflow-y: auto; font-size: 0.85rem; background-color: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid var(--border-color); }
-.transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e293b; }
-.btn-delete { background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
 .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
 </style>
 </head>
@@ -109,16 +95,15 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 </div>
 
 <script>
-    // Konfigurasi Supabase (Ganti dengan kredensial project kamu jika perlu)
-    const SUPABASE_URL = 'https://URL_PROJECT_KAMU.supabase.co';
-    const SUPABASE_ANON_KEY = 'KODE_ANON_KEY_KAMU';
+    // Konfigurasi Supabase (URL sudah dipasang otomatis)
+    const SUPABASE_URL = 'https://scespkwtrcqvrslapkzc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZXNwa3d0cmNxdnJzbGFwa3pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzY4ODcsImV4cCI6MjA1NjgxMjg4N30.gK6dZ5M31JbXqJk4X9Gk8L7M6N3P2Q1R5S4T3U2V1W0';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loginWithGoogle() {
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
             provider: 'google', 
             options: { 
-                // Redirect otomatis ke GitHub Pages, bebas dari localhost
                 redirectTo: 'https://patriotcctvpayakumbuh-web.github.io/BillingByPatriotCCTV/',
                 queryParams: { prompt: 'select_account' }
             } 
@@ -131,7 +116,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
         location.reload();
     }
 
-    // Cek Sesi Saat Halaman Dimuat
     window.addEventListener('DOMContentLoaded', async () => {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
@@ -141,7 +125,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
         }
     });
 
-    // Fungsi Kontrol TV via Server Lokal Termux (Port 3000)
     async function controlTV(unitId, action) {
         const ip = document.getElementById(`ip-${unitId}`).value;
         try {
@@ -160,13 +143,13 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
     function startSession(unitId) {
         document.getElementById(`status-${unitId}`).className = "status-badge status-playing";
         document.getElementById(`status-${unitId}`).innerText = "BERMAIN";
-        controlTV(unitId, 'wake'); // Menyalakan TV via ADB
+        controlTV(unitId, 'wake');
     }
 
     function stopSession(unitId) {
         document.getElementById(`status-${unitId}`).className = "status-badge status-idle";
         document.getElementById(`status-${unitId}`).innerText = "SIAP IDLE";
-        controlTV(unitId, 'sleep'); // Mematikan TV via ADB
+        controlTV(unitId, 'sleep');
     }
 </script>
 </body>
