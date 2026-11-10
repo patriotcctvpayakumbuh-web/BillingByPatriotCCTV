@@ -4,19 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BILLING PATRIOT OKE</title>
-<link rel="manifest" href="./manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-    --bg-color: #0f172a;
-    --card-bg: #1e293b;
     --border-color: #334155;
+    --danger-color: #ef4444;
+    --bg-color: #0f172a; 
+    --card-bg: #1e293b;
     --accent-color: #38bdf8;
     --accent-hover: #0ea5e9;
-    --danger-color: #ef4444;
-    --danger-hover: #dc2626;
+    --danger-hover: #dc2626; 
     --success-color: #22c55e;
-    --text-main: #f8fafc;
+    --text-main: #f8fafc; 
     --text-muted: #94a3b8;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -63,307 +62,112 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 .transaction-list { max-height: 280px; overflow-y: auto; font-size: 0.85rem; background-color: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid var(--border-color); }
 .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e293b; }
 .btn-delete { background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
-.btn-delete:hover { background-color: rgba(239, 68, 68, 0.1); }
 .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
 </style>
 </head>
 <body>
-<header>
-    <h1>BILLING PATRIOT OKE</h1>
-    <div class="auth-container" id="authContainer">
-        <span class="user-info" id="userInfo">Memeriksa sesi...</span>
-        <button class="btn-google" id="loginBtn" onclick="loginWithGoogle()" style="display: none;">Login Google</button>
-        <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display: none;">Keluar</button>
-    </div>
-</header>
 
 <div id="lockScreen">
     <h2>Akses Terkunci</h2>
     <p>Silakan login menggunakan akun Google terdaftar.</p>
-    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-google" onclick="loginWithGoogle()">Login dengan Google</button>
+    <div id="errorMsg" class="error-msg"></div>
 </div>
 
 <div id="mainApp">
+    <header>
+        <h1>BILLING PATRIOT OKE</h1>
+        <div class="auth-container">
+            <span class="user-info" id="userEmail"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
     <div class="dashboard-grid">
         <div class="tv-units-container">
-            <div class="card" id="unit-1">
+            <!-- Unit TV 01 -->
+            <div class="card">
                 <div class="card-header">
                     <h2>PS Unit 01</h2>
-                    <span class="status-badge status-idle" id="badge-1">SIAP / IDLE</span>
+                    <span id="status-1" class="status-badge status-idle">SIAP IDLE</span>
                 </div>
                 <div class="form-group">
                     <label>IP TV:</label>
-                    <input type="text" id="ip-1" value="192.168.1.5" oninput="saveConfig(1)">
+                    <input type="text" id="ip-1" value="192.168.1.5">
                 </div>
                 <div class="form-group">
-                    <label>Paket Cepat:</label>
-                    <div class="preset-buttons">
-                        <button class="btn-preset" onclick="setPreset(1, 60, 5000)">1 Jam</button>
-                        <button class="btn-preset" onclick="setPreset(1, 120, 10000)">2 Jam</button>
-                        <button class="btn-preset" onclick="setPreset(1, 300, 25000)">5 Jam</button>
-                        <button class="btn-preset" onclick="setPreset(1, 600, 50000)">10 Jam</button>
-                    </div>
                     <label>Durasi (Menit):</label>
                     <input type="number" id="duration-1" value="60">
-                </div>
-                <div class="form-group">
-                    <label>Harga (Rp):</label>
-                    <input type="number" id="price-1" value="5000">
                 </div>
                 <div class="timer-display" id="timer-1">00:00:00</div>
                 <div class="btn-group">
                     <button class="action-btn btn-start" onclick="startSession(1)">Mulai</button>
                     <button class="action-btn btn-stop" onclick="stopSession(1)">Selesai</button>
                 </div>
-                <div class="fnb-box">
-                    <label style="color:var(--success-color); font-weight:bold;">F&B Unit 01:</label>
-                    <input type="text" id="fnb-name-1" placeholder="Nama F&B" style="margin-top:4px;">
-                    <input type="number" id="fnb-amount-1" placeholder="Harga F&B" style="margin-top:4px;">
-                    <button class="btn-fnb" onclick="addFnB(1)">Tambah F&B</button>
-                </div>
-                <div class="log-box" id="log-1" style="color: var(--text-muted);">Siap</div>
             </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h2>Laporan Kas & Omset</h2></div>
-            <div class="form-group" style="margin-bottom: 12px;">
-                <label>Filter Periode:</label>
-                <select id="filterPeriod" onchange="updateFinanceUI()">
-                    <option value="all">Semua Waktu</option>
-                    <option value="today">Hari Ini</option>
-                    <option value="month">Bulan Ini</option>
-                    <option value="year">Tahun Ini</option>
-                </select>
-            </div>
-            <div class="finance-stats">
-                <div class="stat-box"><span>Masuk</span><h3 id="totalIncome">Rp 0</h3></div>
-                <div class="stat-box expense"><span>Keluar</span><h3 id="totalExpense">Rp 0</h3></div>
-            </div>
-            <div class="form-group">
-                <label>Pengeluaran:</label>
-                <input type="text" id="expenseDesc" placeholder="Keterangan">
-                <input type="number" id="expenseAmount" placeholder="Nominal" style="margin-top:4px;">
-                <button class="action-btn btn-stop" style="width: 100%; margin-top: 5px; padding: 8px;" onclick="addExpense()">Catat Keluar</button>
-            </div>
-            <hr style="border:0; border-top: 1px solid var(--border-color); margin:12px 0;">
-            <label>Riwayat:</label>
-            <div class="transaction-list" id="transactionList"><div style="text-align:center; color:var(--text-muted);">Memuat...</div></div>
         </div>
     </div>
 </div>
 
 <script>
-const SUPABASE_URL = 'https://scespkwtrcqvrslapkzc.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Z-8KV50-kq4SeVQ4mYZOaQ_LBBfOZ1R';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let transactions = [];
+    // Konfigurasi Supabase (Ganti dengan kredensial project kamu jika perlu)
+    const SUPABASE_URL = 'https://URL_PROJECT_KAMU.supabase.co';
+    const SUPABASE_ANON_KEY = 'KODE_ANON_KEY_KAMU';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-window.onload = async function() {
-    let savedIp = localStorage.getItem('tv_ip_1');
-    if (savedIp) document.getElementById('ip-1').value = savedIp;
-    try {
-        let { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) await verifyAndAuthorize(session.user.email);
-        else showLock("Silakan login Google.");
-    } catch (err) {
-        console.error("Auth session error:", err);
-        showLock("Gagal memuat sesi database.");
+    async function loginWithGoogle() {
+        const { error } = await supabaseClient.auth.signInWithOAuth({ 
+            provider: 'google', 
+            options: { 
+                // Redirect otomatis ke GitHub Pages, bebas dari localhost
+                redirectTo: 'https://patriotcctvpayakumbuh-web.github.io/BillingByPatriotCCTV/',
+                queryParams: { prompt: 'select_account' }
+            } 
+        });
+        if (error) document.getElementById('errorMsg').innerText = error.message;
     }
-};
 
-async function loginWithGoogle() {
-    await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
-}
-
-async function verifyAndAuthorize(email) {
-    document.getElementById('userInfo').innerText = "Memeriksa...";
-    let { data, error } = await supabaseClient.from('allowed_users').select('*').eq('email', email).single();
-    if (error || !data) {
+    async function logout() {
         await supabaseClient.auth.signOut();
-        showLock("Akses Ditolak: Email (" + email + ") tidak terdaftar.");
-    } else {
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('userInfo').innerText = email;
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-        await fetchTransactionsFromSupabase();
-    }
-}
-
-function showLock(msg) {
-    document.getElementById('lockScreen').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('userInfo').innerText = "Belum Login";
-    document.getElementById('loginBtn').style.display = 'flex';
-    document.getElementById('logoutBtn').style.display = 'none';
-    document.getElementById('errorMsg').innerText = msg;
-}
-
-async function logout() { 
-    await supabaseClient.auth.signOut(); 
-    location.reload(); 
-}
-
-function saveConfig(id) { 
-    localStorage.setItem(`tv_ip_${id}`, document.getElementById(`ip-${id}`).value); 
-}
-
-function setPreset(id, minutes, price) {
-    document.getElementById(`duration-${id}`).value = minutes;
-    document.getElementById(`price-${id}`).value = price;
-}
-
-let timers = {};
-async function startSession(id) {
-    let ip = document.getElementById(`ip-${id}`).value;
-    let durationMinutes = parseInt(document.getElementById(`duration-${id}`).value);
-    let logEl = document.getElementById(`log-${id}`);
-    
-    logEl.style.color = "var(--text-muted)";
-    logEl.innerText = "Menghubungkan ke TV...";
-
-    let res = await sendAdbCommand(ip, 'wake');
-    if (res.success) {
-        logEl.style.color = "var(--success-color)";
-        logEl.innerText = "TV Berhasil Dinyalakan";
-        document.getElementById(`badge-${id}`).className = "status-badge status-playing";
-        document.getElementById(`badge-${id}`).innerText = "BERMAIN";
-        let totalSeconds = durationMinutes * 60;
-        if (timers[id]) clearInterval(timers[id]);
-        updateTimerDisplay(id, totalSeconds);
-        timers[id] = setInterval(() => {
-            totalSeconds--;
-            updateTimerDisplay(id, totalSeconds);
-            if (totalSeconds <= 0) { clearInterval(timers[id]); stopSession(id); }
-        }, 1000);
-    } else {
-        logEl.style.color = "var(--danger-color)";
-        logEl.innerText = res.message || "Gagal terhubung ke TV";
-    }
-}
-
-async function stopSession(id) {
-    let ip = document.getElementById(`ip-${id}`).value;
-    let durationMinutes = parseInt(document.getElementById(`duration-${id}`).value) || 60;
-    let totalBiaya = parseFloat(document.getElementById(`price-${id}`).value) || 0;
-    let logEl = document.getElementById(`log-${id}`);
-    
-    logEl.style.color = "var(--text-muted)";
-    logEl.innerText = "Mematikan TV...";
-
-    let res = await sendAdbCommand(ip, 'sleep');
-    if (!res.success) {
-        logEl.style.color = "var(--danger-color)";
-        logEl.innerText = res.message || "Gagal mengirim perintah sleep ke TV";
-        return; 
+        location.reload();
     }
 
-    if (timers[id]) { clearInterval(timers[id]); timers[id] = null; }
-
-    logEl.style.color = "var(--success-color)";
-    logEl.innerText = "TV Berhasil Dimatikan";
-
-    document.getElementById(`badge-${id}`).className = "status-badge status-idle";
-    document.getElementById(`badge-${id}`).innerText = "SIAP / IDLE";
-    document.getElementById(`timer-${id}`).innerText = "00:00:00";
-    
-    await saveTransactionToSupabase(`Rental PS Unit ${id} (${durationMinutes} Menit)`, totalBiaya, 'income');
-}
-
-async function addFnB(id) {
-    let name = document.getElementById(`fnb-name-${id}`).value;
-    let amount = parseFloat(document.getElementById(`fnb-amount-${id}`).value);
-    if (name && amount > 0) {
-        await saveTransactionToSupabase(`F&B Unit ${id}: ${name}`, amount, 'income');
-        document.getElementById(`fnb-name-${id}`).value = '';
-        document.getElementById(`fnb-amount-${id}`).value = '';
-    }
-}
-
-async function addExpense() {
-    let desc = document.getElementById('expenseDesc').value;
-    let amount = parseFloat(document.getElementById('expenseAmount').value);
-    if (desc && amount > 0) {
-        await saveTransactionToSupabase(desc, amount, 'expense');
-        document.getElementById('expenseDesc').value = '';
-        document.getElementById('expenseAmount').value = '';
-    }
-}
-
-async function saveTransactionToSupabase(desc, amount, type) {
-    await supabaseClient.from('transactions').insert([{ description: desc, amount: amount, type: type, created_at: new Date().toISOString() }]);
-    await fetchTransactionsFromSupabase();
-}
-
-async function deleteTransaction(id) {
-    if (confirm("Yakin ingin menghapus riwayat transaksi ini?")) {
-        let { error } = await supabaseClient.from('transactions').delete().eq('id', id);
-        if (!error) await fetchTransactionsFromSupabase();
-        else alert("Gagal menghapus transaksi.");
-    }
-}
-
-async function fetchTransactionsFromSupabase() {
-    let { data } = await supabaseClient.from('transactions').select('*').order('created_at', { ascending: false });
-    transactions = data || [];
-    updateFinanceUI();
-}
-
-function updateFinanceUI() {
-    let filter = document.getElementById('filterPeriod').value;
-    let now = new Date();
-    let totalIncome = 0, totalExpense = 0, listHtml = '';
-    
-    let filteredTransactions = transactions.filter(tx => {
-        let txDate = new Date(tx.created_at);
-        if (filter === 'today') {
-            return txDate.toDateString() === now.toDateString();
-        } else if (filter === 'month') {
-            return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
-        } else if (filter === 'year') {
-            return txDate.getFullYear() === now.getFullYear();
+    // Cek Sesi Saat Halaman Dimuat
+    window.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('userEmail').innerText = session.user.email;
         }
-        return true;
     });
 
-    if (filteredTransactions.length === 0) {
-        listHtml = '<div style="text-align:center; color:var(--text-muted); padding: 10px;">Belum ada transaksi</div>';
-    } else {
-        filteredTransactions.forEach(tx => {
-            let timeFormatted = new Date(tx.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            let dateFormatted = new Date(tx.created_at).toLocaleDateString();
-            let fullTimeStr = `${dateFormatted} ${timeFormatted}`;
-            
-            if (tx.type === 'income') {
-                totalIncome += tx.amount;
-                listHtml += `<div class="transaction-item"><span><b>${tx.description}</b><br><small style="color:var(--text-muted);">${fullTimeStr}</small></span><div style="display:flex; align-items:center; gap:8px;"><span style="color:var(--success-color); font-weight:bold;">+Rp ${tx.amount.toLocaleString()}</span><button class="btn-delete" onclick="deleteTransaction('${tx.id}')" title="Hapus">✕</button></div></div>`;
-            } else {
-                totalExpense += tx.amount;
-                listHtml += `<div class="transaction-item"><span><b>${tx.description}</b><br><small style="color:var(--text-muted);">${fullTimeStr}</small></span><div style="display:flex; align-items:center; gap:8px;"><span style="color:var(--danger-color); font-weight:bold;">-Rp ${tx.amount.toLocaleString()}</span><button class="btn-delete" onclick="deleteTransaction('${tx.id}')" title="Hapus">✕</button></div></div>`;
-            }
-        });
+    // Fungsi Kontrol TV via Server Lokal Termux (Port 3000)
+    async function controlTV(unitId, action) {
+        const ip = document.getElementById(`ip-${unitId}`).value;
+        try {
+            const response = await fetch('http://localhost:3000/api/adb', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip, action })
+            });
+            const result = await response.json();
+            console.log("ADB Response:", result);
+        } catch (err) {
+            console.error("Gagal terhubung ke server lokal Termux:", err);
+        }
     }
-    document.getElementById('totalIncome').innerText = 'Rp ' + totalIncome.toLocaleString();
-    document.getElementById('totalExpense').innerText = 'Rp ' + totalExpense.toLocaleString();
-    document.getElementById('transactionList').innerHTML = listHtml;
-}
 
-function updateTimerDisplay(id, seconds) {
-    let hrs = Math.floor(seconds / 3600), mins = Math.floor((seconds % 3600) / 60), secs = seconds % 60;
-    document.getElementById(`timer-${id}`).innerText = String(hrs).padStart(2, '0') + ":" + String(mins).padStart(2, '0') + ":" + String(secs).padStart(2, '0');
-}
-
-async function sendAdbCommand(ip, action) {
-    try {
-        let res = await fetch('/api/adb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip, action }) });
-        let json = await res.json();
-        return json;
-    } catch (err) { 
-        return { success: false, message: 'Koneksi ke server lokal gagal' }; 
+    function startSession(unitId) {
+        document.getElementById(`status-${unitId}`).className = "status-badge status-playing";
+        document.getElementById(`status-${unitId}`).innerText = "BERMAIN";
+        controlTV(unitId, 'wake'); // Menyalakan TV via ADB
     }
-}
+
+    function stopSession(unitId) {
+        document.getElementById(`status-${unitId}`).className = "status-badge status-idle";
+        document.getElementById(`status-${unitId}`).innerText = "SIAP IDLE";
+        controlTV(unitId, 'sleep'); // Mematikan TV via ADB
+    }
 </script>
 </body>
 </html>
