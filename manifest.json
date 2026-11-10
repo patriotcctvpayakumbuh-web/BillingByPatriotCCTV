@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "PatriotBilling",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "patriotcctvpayakumbuh-web.github",
+  "start_url": "https://patriotcctvpayakumbuh-web.github.io/BillingByPatriotCCTV/",
+  "theme_color": "#0e1aed",
+  "lang": "id"
+}
