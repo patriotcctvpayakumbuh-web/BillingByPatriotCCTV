@@ -43,18 +43,32 @@ header h1 { color: var(--accent-color); font-size: 1.5rem; }
 label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
 input, select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #475569; background-color: #0f172a; color: var(--text-main); font-size: 0.9rem; }
 input:focus, select:focus { outline: none; border-color: var(--accent-color); }
+.preset-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+.btn-preset { background-color: #334155; color: #f8fafc; border: none; padding: 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+.btn-preset:hover { background-color: var(--accent-color); color: #0f172a; }
 .timer-display { text-align: center; font-size: 1.8rem; font-weight: bold; margin: 10px 0; color: var(--accent-color); letter-spacing: 2px; }
 .btn-group { display: flex; gap: 8px; margin-top: 10px; }
 button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 .btn-start { background-color: var(--accent-color); color: #0f172a; }
 .btn-stop { background-color: var(--danger-color); color: #fff; }
+.btn-fnb { background-color: var(--success-color); color: #fff; width: 100%; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-top: 5px; }
+.fnb-box { background-color: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 12px; }
+.log-box { margin-top: 8px; font-size: 0.75rem; color: var(--text-muted); text-align: center; min-height: 16px; }
+.finance-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.stat-box { background-color: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; }
+.stat-box span { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+.stat-box h3 { font-size: 1rem; color: var(--success-color); }
+.stat-box.expense h3 { color: var(--danger-color); }
+.transaction-list { max-height: 280px; overflow-y: auto; font-size: 0.85rem; background-color: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid var(--border-color); }
+.transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e293b; }
+.btn-delete { background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
 .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div id="lockScreen">
-    <h2>Akses Terkunci</h2>
+    <h2>Memeriksa sesi...</h2>
     <p>Silakan login menggunakan akun Google terdaftar.</p>
     <button class="btn-google" onclick="loginWithGoogle()">Login dengan Google</button>
     <div id="errorMsg" class="error-msg"></div>
@@ -68,6 +82,7 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </header>
+    
     <div class="dashboard-grid">
         <div class="tv-units-container">
             <!-- Unit TV 01 -->
@@ -81,13 +96,72 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
                     <input type="text" id="ip-1" value="192.168.1.5">
                 </div>
                 <div class="form-group">
+                    <label>Paket Cepat:</label>
+                    <div class="preset-buttons">
+                        <button class="btn-preset" onclick="setPreset(1, 30)">30 mnt</button>
+                        <button class="btn-preset" onclick="setPreset(1, 60)">1 jam</button>
+                        <button class="btn-preset" onclick="setPreset(1, 120)">2 jam</button>
+                        <button class="btn-preset" onclick="setPreset(1, 180)">3 jam</button>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Durasi (Menit):</label>
                     <input type="number" id="duration-1" value="60">
+                </div>
+                <div class="form-group">
+                    <label>Harga (Rp):</label>
+                    <input type="number" id="price-1" value="5000">
                 </div>
                 <div class="timer-display" id="timer-1">00:00:00</div>
                 <div class="btn-group">
                     <button class="action-btn btn-start" onclick="startSession(1)">Mulai</button>
                     <button class="action-btn btn-stop" onclick="stopSession(1)">Selesai</button>
+                </div>
+                <div class="fnb-box">
+                    <label>F&B Unit 01:</label>
+                    <select id="fnb-select-1">
+                        <option value="Mineral Water|3000">Air Mineral (Rp 3.000)</option>
+                        <option value="Kopi Hitam|5000">Kopi Hitam (Rp 5.000)</option>
+                        <option value="Mie Instan|8000">Mie Instan (Rp 8.000)</option>
+                    </select>
+                    <button class="btn-fnb" onclick="addFnB(1)">Catat F&B</button>
+                </div>
+                <div class="log-box" id="log-1">Siap</div>
+            </div>
+        </div>
+
+        <!-- Panel Keuangan & Kas -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Laporan Kas & Omset</h2>
+            </div>
+            <div class="finance-stats">
+                <div class="stat-box">
+                    <span>Masuk</span>
+                    <h3 id="totalIncome">Rp 0</h3>
+                </div>
+                <div class="stat-box expense">
+                    <span>Keluar</span>
+                    <h3 id="totalExpense">Rp 0</h3>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Filter Periode:</label>
+                <select id="filterPeriod" onchange="loadTransactions()">
+                    <option value="today">Hari Ini</option>
+                    <option value="all">Semua Riwayat</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Pengeluaran:</label>
+                <input type="text" id="expDesc" placeholder="Keterangan pengeluaran...">
+                <input type="number" id="expAmount" placeholder="Nominal (Rp)..." style="margin-top: 5px;">
+                <button class="btn-fnb" style="background-color: var(--danger-color); margin-top: 8px;" onclick="addExpense()">Catat Keluar</button>
+            </div>
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Riwayat:</label>
+                <div class="transaction-list" id="transactionList">
+                    <div class="transaction-item">Memuat...</div>
                 </div>
             </div>
         </div>
@@ -95,7 +169,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 </div>
 
 <script>
-    // Konfigurasi Supabase (URL sudah dipasang otomatis)
     const SUPABASE_URL = 'https://scespkwtrcqvrslapkzc.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZXNwa3d0cmNxdnJzbGFwa3pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzY4ODcsImV4cCI6MjA1NjgxMjg4N30.gK6dZ5M31JbXqJk4X9Gk8L7M6N3P2Q1R5S4T3U2V1W0';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -116,13 +189,40 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
         location.reload();
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-        const { data: { session } } = await supabaseClient.auth.getSession();
+    async function checkUserSession() {
+        let { data: { session } } = await supabaseClient.auth.getSession();
+
+        if (!session && window.location.hash) {
+            try {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+                if (accessToken) {
+                    const { data } = await supabaseClient.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                    session = data.session;
+                }
+            } catch (e) {
+                console.error("Gagal memproses sesi hash:", e);
+            }
+        }
+
         if (session) {
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('userEmail').innerText = session.user.email;
+            loadTransactions();
+        } else {
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('lockScreen').querySelector('h2').innerText = "Akses Terkunci";
         }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        checkUserSession();
     });
 
     async function controlTV(unitId, action) {
@@ -140,16 +240,84 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
         }
     }
 
+    function setPreset(unitId, minutes) {
+        document.getElementById(`duration-${unitId}`).value = minutes;
+    }
+
     function startSession(unitId) {
         document.getElementById(`status-${unitId}`).className = "status-badge status-playing";
         document.getElementById(`status-${unitId}`).innerText = "BERMAIN";
+        document.getElementById(`log-${unitId}`).innerText = "Sesi rental dimulai";
         controlTV(unitId, 'wake');
     }
 
     function stopSession(unitId) {
         document.getElementById(`status-${unitId}`).className = "status-badge status-idle";
         document.getElementById(`status-${unitId}`).innerText = "SIAP IDLE";
+        document.getElementById(`log-${unitId}`).innerText = "Sesi selesai";
         controlTV(unitId, 'sleep');
+    }
+
+    function addFnB(unitId) {
+        const select = document.getElementById(`fnb-select-${unitId}`);
+        const [itemName, itemPrice] = select.value.split('|');
+        recordTransaction(`F&B Unit ${unitId}: ${itemName}`, parseInt(itemPrice), 'income');
+    }
+
+    async function recordTransaction(description, amount, type) {
+        const { error } = await supabaseClient.from('transactions').insert([{ description, amount, type }]);
+        if (error) {
+            alert('Gagal mencatat transaksi: ' + error.message);
+        } else {
+            loadTransactions();
+        }
+    }
+
+    async function addExpense() {
+        const desc = document.getElementById('expDesc').value;
+        const amount = parseFloat(document.getElementById('expAmount').value);
+        if (!desc || isNaN(amount)) {
+            alert('Isi keterangan dan nominal pengeluaran dengan benar!');
+            return;
+        }
+        await recordTransaction(desc, amount, 'expense');
+        document.getElementById('expDesc').value = '';
+        document.getElementById('expAmount').value = '';
+    }
+
+    async function loadTransactions() {
+        const { data, error } = await supabaseClient.from('transactions').select('*').order('created_at', { ascending: false });
+        if (error) {
+            console.error("Gagal memuat transaksi:", error);
+            return;
+        }
+
+        let totalInc = 0;
+        let totalExp = 0;
+        let html = '';
+
+        data.forEach(item => {
+            if (item.type === 'income') totalInc += item.amount;
+            else totalExp += item.amount;
+
+            html += `
+                <div class="transaction-item">
+                    <span>${item.description} (Rp ${item.amount.toLocaleString()})</span>
+                    <button class="btn-delete" onclick="deleteTransaction('${item.id}')">Hapus</button>
+                </div>
+            `;
+        });
+
+        document.getElementById('totalIncome').innerText = `Rp ${totalInc.toLocaleString()}`;
+        document.getElementById('totalExpense').innerText = `Rp ${totalExp.toLocaleString()}`;
+        document.getElementById('transactionList').innerHTML = html || '<div class="transaction-item">Belum ada transaksi</div>';
+    }
+
+    async function deleteTransaction(id) {
+        if (!confirm('Hapus catatan ini?')) return;
+        const { error } = await supabaseClient.from('transactions').delete().eq('id', id);
+        if (error) alert('Gagal menghapus: ' + error.message);
+        else loadTransactions();
     }
 </script>
 </body>
