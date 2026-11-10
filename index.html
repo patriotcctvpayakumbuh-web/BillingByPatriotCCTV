@@ -243,7 +243,7 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
     async function controlTV(unitId, action) {
         const ip = document.getElementById(`ip-${unitId}`).value;
         try {
-            const response = await fetch('https://59d88712a76abc1b-182-9-196-28.serveousercontent.com/api/adb', {
+            const response = await fetch('https://64ba46bbf178c7d5-182-9-196-28.serveousercontent.com/api/adb', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ip, action })
