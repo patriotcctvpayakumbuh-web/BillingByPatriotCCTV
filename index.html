@@ -170,14 +170,14 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 
 <script>
     const SUPABASE_URL = 'https://scespkwtrcqvrslapkzc.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZXNwa3d0cmNxdnJzbGFwa3pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyMzY4ODcsImV4cCI6MjA1NjgxMjg4N30.gK6dZ5M31JbXqJk4X9Gk8L7M6N3P2Q1R5S4T3U2V1W0';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Z-8KV50-kq4SeVQ4mYZOaQ_LBBfOZ1R'; // Diperbarui dengan kunci asli
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loginWithGoogle() {
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
             provider: 'google', 
             options: { 
-                redirectTo: 'https://patriotcctvpayakumbuh-web.github.io/BillingByPatriotCCTV/',
+                redirectTo: window.location.origin + window.location.pathname,
                 queryParams: { prompt: 'select_account' }
             } 
         });
@@ -190,35 +190,51 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
     }
 
     async function checkUserSession() {
-        let { data: { session } } = await supabaseClient.auth.getSession();
-
-        if (!session && window.location.hash) {
+        // Tangkap token hash dari URL jika ada pengalihan dari Google OAuth
+        if (window.location.hash && window.location.hash.includes('access_token')) {
             try {
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = hashParams.get('access_token');
                 const refreshToken = hashParams.get('refresh_token');
                 if (accessToken) {
-                    const { data } = await supabaseClient.auth.setSession({
+                    await supabaseClient.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken
                     });
-                    session = data.session;
+                    // Bersihkan URL hash agar bersih
+                    window.history.replaceState({}, document.title, window.location.pathname);
                 }
             } catch (e) {
                 console.error("Gagal memproses sesi hash:", e);
             }
         }
 
-        if (session) {
-            document.getElementById('lockScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('userEmail').innerText = session.user.email;
-            loadTransactions();
-        } else {
-            document.getElementById('lockScreen').style.display = 'flex';
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('lockScreen').querySelector('h2').innerText = "Akses Terkunci";
+        let { data: { session } } = await supabaseClient.auth.getSession();
+
+        if (session && session.user) {
+            // Validasi Whitelist ke tabel allowed_users
+            const { data: allowed, error } = await supabaseClient
+                .from('allowed_users')
+                .select('email')
+                .eq('email', session.user.email)
+                .maybeSingle();
+
+            if (allowed) {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('userEmail').innerText = session.user.email;
+                loadTransactions();
+                return;
+            } else {
+                await supabaseClient.auth.signOut();
+                document.getElementById('errorMsg').innerText = "Akses Ditolak: Email " + session.user.email + " belum terdaftar di whitelist.";
+            }
         }
+
+        // Jika tidak ada sesi atau tidak terdaftar, tampilkan layar kunci
+        document.getElementById('lockScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('lockScreen').querySelector('h2').innerText = "Akses Terkunci";
     }
 
     window.addEventListener('DOMContentLoaded', () => {
