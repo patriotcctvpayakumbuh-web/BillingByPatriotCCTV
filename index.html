@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BILLING PATRIOT OKE</title>
+<link rel="manifest" href="./manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
@@ -256,7 +257,7 @@ async function stopSession(id) {
     if (!res.success) {
         logEl.style.color = "var(--danger-color)";
         logEl.innerText = res.message || "Gagal mengirim perintah sleep ke TV";
-        return; // BATALKAN pencatatan transaksi jika koneksi ADB gagal!
+        return; 
     }
 
     if (timers[id]) { clearInterval(timers[id]); timers[id] = null; }
@@ -268,7 +269,6 @@ async function stopSession(id) {
     document.getElementById(`badge-${id}`).innerText = "SIAP / IDLE";
     document.getElementById(`timer-${id}`).innerText = "00:00:00";
     
-    // Transaksi hanya dicatat jika koneksi ADB sukses
     await saveTransactionToSupabase(`Rental PS Unit ${id} (${durationMinutes} Menit)`, totalBiaya, 'income');
 }
 
