@@ -59,7 +59,7 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 .stat-box span { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
 .stat-box h3 { font-size: 1rem; color: var(--success-color); }
 .stat-box.expense h3 { color: var(--danger-color); }
-.transaction-list { max-height: 280px; overflow-y: auto; font-size: 0.85rem; background-color: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid var(--border-color); }
+.transaction-list { max-height: 280px; overflow-y: auto; font-size: 0.85rem; background-color: #0f172a; border-radius: 8px; padding: 10px; border: 1px solid var(--border-color); scroll-behavior: smooth; }
 .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1e293b; }
 .btn-delete { background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
 .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-top: 10px; font-weight: bold; }
@@ -118,12 +118,13 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
                     <button class="action-btn btn-stop" onclick="stopSession(1)">Selesai</button>
                 </div>
                 <div class="fnb-box">
-                    <label>F&B Unit 01:</label>
-                    <select id="fnb-select-1">
-                        <option value="Mineral Water|3000">Air Mineral (Rp 3.000)</option>
-                        <option value="Kopi Hitam|5000">Kopi Hitam (Rp 5.000)</option>
-                        <option value="Mie Instan|8000">Mie Instan (Rp 8.000)</option>
-                    </select>
+                    <label>Tambah F&B Custom:</label>
+                    <div class="form-group" style="margin-bottom:6px;">
+                        <input type="text" id="fnb-name-1" placeholder="Nama Makanan/Minuman...">
+                    </div>
+                    <div class="form-group" style="margin-bottom:6px;">
+                        <input type="number" id="fnb-price-1" placeholder="Harga (Rp)...">
+                    </div>
                     <button class="btn-fnb" onclick="addFnB(1)">Catat F&B</button>
                 </div>
                 <div class="log-box" id="log-1">Siap</div>
@@ -159,7 +160,7 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
                 <button class="btn-fnb" style="background-color: var(--danger-color); margin-top: 8px;" onclick="addExpense()">Catat Keluar</button>
             </div>
             <div class="form-group" style="margin-top: 20px;">
-                <label>Riwayat:</label>
+                <label>Riwayat (Auto-Scroll):</label>
                 <div class="transaction-list" id="transactionList">
                     <div class="transaction-item">Memuat...</div>
                 </div>
@@ -170,8 +171,10 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 
 <script>
     const SUPABASE_URL = 'https://scespkwtrcqvrslapkzc.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_Z-8KV50-kq4SeVQ4mYZOaQ_LBBfOZ1R'; // Diperbarui dengan kunci asli
+    const SUPABASE_ANON_KEY = 'sb_publishable_Z-8KV50-kq4SeVQ4mYZOaQ_LBBfOZ1R';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const activeTimers = {};
 
     async function loginWithGoogle() {
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
@@ -190,7 +193,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
     }
 
     async function checkUserSession() {
-        // Tangkap token hash dari URL jika ada pengalihan dari Google OAuth
         if (window.location.hash && window.location.hash.includes('access_token')) {
             try {
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -201,7 +203,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
                         access_token: accessToken,
                         refresh_token: refreshToken
                     });
-                    // Bersihkan URL hash agar bersih
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             } catch (e) {
@@ -212,7 +213,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
         let { data: { session } } = await supabaseClient.auth.getSession();
 
         if (session && session.user) {
-            // Validasi Whitelist ke tabel allowed_users
             const { data: allowed, error } = await supabaseClient
                 .from('allowed_users')
                 .select('email')
@@ -231,7 +231,6 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
             }
         }
 
-        // Jika tidak ada sesi atau tidak terdaftar, tampilkan layar kunci
         document.getElementById('lockScreen').style.display = 'flex';
         document.getElementById('mainApp').style.display = 'none';
         document.getElementById('lockScreen').querySelector('h2').innerText = "Akses Terkunci";
@@ -250,9 +249,10 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
                 body: JSON.stringify({ ip, action })
             });
             const result = await response.json();
-            console.log("ADB Response:", result);
+            return result;
         } catch (err) {
             console.error("Gagal terhubung ke server lokal Termux:", err);
+            return { success: false, message: "Gagal terhubung ke server Termux / ADB offline." };
         }
     }
 
@@ -260,24 +260,77 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
         document.getElementById(`duration-${unitId}`).value = minutes;
     }
 
-    function startSession(unitId) {
+    async function startSession(unitId) {
+        const ip = document.getElementById(`ip-${unitId}`).value;
+        const durationMin = parseInt(document.getElementById(`duration-${unitId}`).value) || 60;
+        const price = parseInt(document.getElementById(`price-${unitId}`).value) || 0;
+        const logBox = document.getElementById(`log-${unitId}`);
+
+        if (!ip) {
+            alert('Masukkan IP TV terlebih dahulu!');
+            return;
+        }
+
+        logBox.innerText = "Menghubungkan ke ADB TV...";
+        
+        const res = await controlTV(unitId, 'wake');
+        if (!res.success) {
+            alert("GAGAL MENYALAKAN TV: TV tidak terhubung ke ADB / IP Salah (" + (res.message || 'Offline') + ")");
+            logBox.innerText = "Gagal terhubung ke ADB";
+            return;
+        }
+
         document.getElementById(`status-${unitId}`).className = "status-badge status-playing";
         document.getElementById(`status-${unitId}`).innerText = "BERMAIN";
-        document.getElementById(`log-${unitId}`).innerText = "Sesi rental dimulai";
-        controlTV(unitId, 'wake');
+        logBox.innerText = "Sesi rental dimulai & TV aktif";
+
+        await recordTransaction(`Rental PS Unit ${unitId} (${durationMin} Mnt)`, price, 'income');
+
+        let totalSeconds = durationMin * 60;
+        if (activeTimers[unitId]) clearInterval(activeTimers[unitId]);
+
+        activeTimers[unitId] = setInterval(() => {
+            if (totalSeconds <= 0) {
+                clearInterval(activeTimers[unitId]);
+                stopSession(unitId);
+                logBox.innerText = "Waktu habis!";
+                return;
+            }
+            totalSeconds--;
+            const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const secs = String(totalSeconds % 60).padStart(2, '0');
+            document.getElementById(`timer-${unitId}`).innerText = `${hrs}:${mins}:${secs}`;
+        }, 1000);
     }
 
-    function stopSession(unitId) {
+    async function stopSession(unitId) {
+        if (activeTimers[unitId]) {
+            clearInterval(activeTimers[unitId]);
+            activeTimers[unitId] = null;
+        }
+        await controlTV(unitId, 'sleep');
         document.getElementById(`status-${unitId}`).className = "status-badge status-idle";
         document.getElementById(`status-${unitId}`).innerText = "SIAP IDLE";
-        document.getElementById(`log-${unitId}`).innerText = "Sesi selesai";
-        controlTV(unitId, 'sleep');
+        document.getElementById(`timer-${unitId}`).innerText = "00:00:00";
+        document.getElementById(`log-${unitId}`).innerText = "Sesi dihentikan & Screensaver aktif";
     }
 
-    function addFnB(unitId) {
-        const select = document.getElementById(`fnb-select-${unitId}`);
-        const [itemName, itemPrice] = select.value.split('|');
-        recordTransaction(`F&B Unit ${unitId}: ${itemName}`, parseInt(itemPrice), 'income');
+    async function addFnB(unitId) {
+        const nameInput = document.getElementById(`fnb-name-${unitId}`);
+        const priceInput = document.getElementById(`fnb-price-${unitId}`);
+        
+        const itemName = nameInput.value.trim();
+        const itemPrice = parseFloat(priceInput.value);
+
+        if (!itemName || isNaN(itemPrice) || itemPrice <= 0) {
+            alert('Masukkan nama F&B dan harga dengan benar!');
+            return;
+        }
+
+        await recordTransaction(`F&B Unit ${unitId}: ${itemName}`, itemPrice, 'income');
+        nameInput.value = '';
+        priceInput.value = '';
     }
 
     async function recordTransaction(description, amount, type) {
@@ -290,9 +343,9 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
     }
 
     async function addExpense() {
-        const desc = document.getElementById('expDesc').value;
+        const desc = document.getElementById('expDesc').value.trim();
         const amount = parseFloat(document.getElementById('expAmount').value);
-        if (!desc || isNaN(amount)) {
+        if (!desc || isNaN(amount) || amount <= 0) {
             alert('Isi keterangan dan nominal pengeluaran dengan benar!');
             return;
         }
@@ -318,15 +371,21 @@ button.action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; fo
 
             html += `
                 <div class="transaction-item">
-                    <span>${item.description} (Rp ${item.amount.toLocaleString()})</span>
-                    <button class="btn-delete" onclick="deleteTransaction('${item.id}')">Hapus</button>
+                    <span><b>${item.description}</b><br><small style="color:var(--text-muted);">${new Date(item.created_at).toLocaleTimeString('id-ID')}</small></span>
+                    <span style="font-weight:bold; color:${item.type === 'income' ? 'var(--success-color)' : 'var(--danger-color)'}">
+                        ${item.type === 'income' ? '+' : '-'} Rp ${item.amount.toLocaleString()}
+                        <button class="btn-delete" onclick="deleteTransaction('${item.id}')" style="margin-left:8px;">Hapus</button>
+                    </span>
                 </div>
             `;
         });
 
         document.getElementById('totalIncome').innerText = `Rp ${totalInc.toLocaleString()}`;
         document.getElementById('totalExpense').innerText = `Rp ${totalExp.toLocaleString()}`;
-        document.getElementById('transactionList').innerHTML = html || '<div class="transaction-item">Belum ada transaksi</div>';
+        
+        const listEl = document.getElementById('transactionList');
+        listEl.innerHTML = html || '<div class="transaction-item">Belum ada transaksi</div>';
+        listEl.scrollTop = 0;
     }
 
     async function deleteTransaction(id) {
